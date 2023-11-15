@@ -1,18 +1,57 @@
 #!/bin/bash
 
+# Default values
+home_dir="/home"
+public_html_dir="public_html"
+group_name="www-data"
+user_name=""
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+  key="$1"
+  case $key in
+    --home)
+      home_dir="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    --public_html)
+      public_html_dir="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    --group)
+      group_name="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    --user)
+      user_name="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    *)    # unknown option
+      shift # past argument
+      ;;
+  esac
+done
+
 # Initialize an empty array to hold the modified users
 modified_users=()
 
-for dir in /home/*; do
-  if [ -d "$dir/public_html" ]; then
+for dir in $home_dir/*; do
+  if [ -d "$dir/$public_html_dir" ]; then
     username=$(basename $dir)
-    # Try to add the www-data group to the user's groups
-    if usermod -a -G www-data $username; then
-      # If the usermod command succeeded, add the username to the modified_users array
-      modified_users+=($username)
-    else
-      # If the usermod command failed, output an error message
-      echo "Failed to modify user $username"
+    # If a user name is provided, only modify that user
+    if [ -z "$user_name" ] || [ "$username" == "$user_name" ]; then
+      # Try to add the group to the user's groups
+      if usermod -a -G $group_name $username; then
+        # If the usermod command succeeded, add the username to the modified_users array
+        modified_users+=($username)
+      else
+        # If the usermod command failed, output an error message
+        echo "Failed to modify user $username"
+      fi
     fi
   fi
 done
