@@ -6,6 +6,19 @@ public_html_dir="public_html"
 group_name="www-data"
 user_name=""
 
+# Function to display help message
+display_help() {
+  echo "Usage: $0 [options...]"
+  echo
+  echo "Options:"
+  echo "  --home <directory>    Specify the home directory (default: /home)"
+  echo "  --public_html <directory> Specify the public_html directory (default: public_html)"
+  echo "  --group <group>       Specify the group name (default: www-data)"
+  echo "  --user <username>     Specify a user name (default: all users)"
+  echo "  --help                Display this help message"
+  exit 1
+}
+
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
   key="$1"
@@ -29,6 +42,9 @@ while [[ $# -gt 0 ]]; do
       user_name="$2"
       shift # past argument
       shift # past value
+      ;;
+    --help)
+      display_help
       ;;
     *)    # unknown option
       shift # past argument
