@@ -1,0 +1,83 @@
+#!/bin/bash
+
+# Default values
+home_dir="/home"
+public_html_dir="public_html"
+
+# Function to display help message
+display_help() {
+  echo "Usage: $0 [options...]"
+  echo
+  echo "Options:"
+  echo "  --home <directory>    Specify the home directory (default: /home/webuser)"
+  echo "  --public_html <directory> Specify the public_html directory (default: public_html)"
+  echo "  --help                Display this help message"
+  exit 1
+}
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+  key="$1"
+  case $key in
+    --home)
+      home_dir="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    --public_html)
+      public_html_dir="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    --help)
+      display_help
+      ;;
+    *)    # unknown option
+      shift # past argument
+      ;;
+  esac
+done
+
+# Check if the script is run as root
+if [ "$EUID" -ne 0 ]; then
+  echo "Please run as root"
+  exit
+fi
+
+# Check if the directories exist and are readable and writable
+if [ ! -d "$home_dir" ] || [ ! -r "$home_dir" ] || [ ! -w "$home_dir" ]; then
+  echo "Error: Cannot read or write to home directory $home_dir."
+  exit 1
+fi
+
+printf "Adding user to web group...\n"
+if ! sudo usermod -a -G www-data $1 || ! sudo usermod -a -G $1 www-data; then
+  echo "Error: Failed to add user to web group."
+  exit 1
+fi
+newgrp -
+
+printf "Backing up public_html folder\n"
+if ! sudo cp -R /home/$1/public_html /home/$1/public_html.preupgrade; then
+  echo "Error: Failed to backup public_html folder."
+  exit 1
+fi
+
+printf "Downloading Laravel 5.0 to new folder...\n"
+if ! sudo git clone https://github.com/laravel/laravel.git /home/$1/public_html.laravel5; then
+  echo "Error: Failed to clone Laravel repository."
+  exit 1
+fi
+cd /home/$1/public_html.laravel5 || exit
+if ! sudo git checkout 5.0; then
+  echo "Error: Failed to checkout Laravel 5.0."
+  exit 1
+fi
+
+sudo rm -rf /home/$1/public_html.laravel5/.git
+sudo chown -R $1:www-data /home/$1/public_html.laravel5
+sudo chmod -R 775 /home/$1/public_html.laravel5
+
+cd - || exit
+
+printf "All done! Please note that further configuration will be necessary. Custom code, assets, etc will need to be manually migrated\n"
