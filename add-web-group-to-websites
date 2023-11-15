@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Initialize an empty array to hold the modified users
+modified_users=()
+
+for dir in /home/*; do
+  if [ -d "$dir/public_html" ]; then
+    username=$(basename $dir)
+    # Try to add the www-data group to the user's groups
+    if usermod -a -G www-data $username; then
+      # If the usermod command succeeded, add the username to the modified_users array
+      modified_users+=($username)
+    else
+      # If the usermod command failed, output an error message
+      echo "Failed to modify user $username"
+    fi
+  fi
+done
+
+# Check if any users were modified
+if [ ${#modified_users[@]} -eq 0 ]; then
+  echo "No users were modified."
+else
+  echo "The following users were modified:"
+  for user in "${modified_users[@]}"; do
+    echo $user
+  done
+fi
