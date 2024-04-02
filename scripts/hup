@@ -1,0 +1,13 @@
+#!/bin/bash
+
+case $1 in
+  apache|apache2)
+    echo -n "Hupping Apache..."
+    sudo systemctl restart apache2
+    sudo systemctl status apache2
+    ;;   
+  *)
+    echo "Hupping $1"
+    sudo systemctl restart $1
+    sudo systemctl status $1
+esac

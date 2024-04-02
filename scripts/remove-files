@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Set the file type to the first argument, or default to '.bak' if no argument is provided
+filetype=${1:-.bak}
+
+# Check if the second argument is --list-only
+if [ "$2" == "--list-only" ]; then
+    echo "Listing files of type $filetype:"
+    find . -type f -name "*$filetype"
+else
+    echo "WARNING: You are about to delete all files of type $filetype. This operation is destructive."
+    read -p "Are you sure you want to continue? (y/n) " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        echo "Deleting files of type $filetype:"
+        find . -type f -name "*$filetype" -print -exec rm {} \;
+    fi
+fi

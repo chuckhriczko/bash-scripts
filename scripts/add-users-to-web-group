@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Function to handle errors
+error_exit()
+{
+    echo "Error: $1" 1>&2
+    exit 1
+}
+
+# Iterate over each user's home directory
+for user_dir in /home/*; do
+    if [ -d "$user_dir" ]; then
+        # Extract the username from the directory path
+        user=$(basename "$user_dir")
+
+        # Add the user to the www-data group
+        sudo usermod -a -G www-data "$user" || error_exit "Failed to add $user to the www-data group."
+        echo "Added $user to the www-data group."
+
+        # Set directory permissions to 775
+        sudo chmod 775 "$user_dir" || error_exit "Failed to set permissions for $user_dir."
+        echo "Set permissions for $user_dir to 775."
+    fi
+done
+
+echo "All users in /home have been added to the www-data group and permissions set to 775."
+
