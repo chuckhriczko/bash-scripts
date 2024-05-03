@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Usage: ./db_copy.sh <username> <password> <source_db> <target_db>
+
+# Get input parameters
+USERNAME="$1"
+PASSWORD="$2"
+SOURCE_DB="$3"
+TARGET_DB="$4"
+
+# Check if the target database exists
+if mysql -u "$USERNAME" -p"$PASSWORD" -e "USE $TARGET_DB" 2>/dev/null; then
+    echo "Target database '$TARGET_DB' already exists."
+else
+    # Create the target database
+    mysql -u "$USERNAME" -p"$PASSWORD" -e "CREATE DATABASE $TARGET_DB"
+    echo "Created target database '$TARGET_DB'."
+fi
+
+# Perform mysqldump from source and import into target
+mysqldump -u "$USERNAME" -p"$PASSWORD" "$SOURCE_DB" | mysql -u "$USERNAME" -p"$PASSWORD" "$TARGET_DB"
+
+echo "Data copied from '$SOURCE_DB' to '$TARGET_DB'."
