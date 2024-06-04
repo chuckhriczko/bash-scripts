@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Get the directory path (default to current directory if not provided)
+target_dir="${1:-.}"
+
+# Initialize or update the .gitignore file in the target directory
+gitignore_path="$target_dir/.gitignore"
+touch "$gitignore_path"
+
+# Add the rule to ignore permission changes
+echo "* -diff" >> "$gitignore_path"
+
+echo "Git will now ignore permission changes in $target_dir."
